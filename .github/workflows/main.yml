@@ -1,0 +1,62 @@
+name: CI/CD Lab 5
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-app:
+    name: Test Application
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install & Test
+        run: |
+          cd td4/scripts/sample-app
+          npm install
+          npm test
+
+  test-infra:
+    name: Test Infrastructure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+
+      # AJOUT ICI : Le test a besoin de savoir qui tu es sur AWS pour valider le code
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: OpenTofu Test
+        run: |
+          cd td4/scripts/tofu/live/lambda-sample
+          tofu init
+          tofu test
+
+  deploy:
+    name: Deploy to AWS
+    needs: [test-app, test-infra]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-north-1
+
+      - name: OpenTofu Init & Apply
+        run: |
+          cd td4/scripts/tofu/live/lambda-sample
+          tofu init
+          tofu apply -auto-approve

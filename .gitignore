@@ -1,0 +1,12 @@
+# On ignore les binaires de Terraform/OpenTofu
+.terraform/
+
+# On ignore les fichiers d'état locaux (car on utilise S3)
+*.tfstate
+*.tfstate.backup
+
+# On ignore les archives zip générées
+*.zip
+
+# On ignore les dossiers de logs ou temporaires
+.terraform.lock.hcl

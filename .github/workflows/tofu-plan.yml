@@ -1,0 +1,34 @@
+name: Tofu Plan 
+on: 
+  pull_request: 
+    branches: ["main"] 
+    paths: ["td5/scripts/tofu/live/lambda-sample/**"] 
+
+jobs: 
+  plan: 
+    name: "Tofu Plan" 
+    runs-on: ubuntu-latest 
+    permissions: 
+      pull-requests: write 
+      id-token: write 
+      contents: read 
+    steps: 
+      - uses: actions/checkout@v3 
+
+      - name: Configure AWS credentials 
+        uses: aws-actions/configure-aws-credentials@v3 
+        with:
+          role-to-assume: ${{ secrets.PLAN_ROLE_ARN }}
+          role-session-name: plan-${{ github.run_number }}-${{ github.actor }} 
+          aws-region: eu-north-1 
+
+      - uses: opentofu/setup-opentofu@v1 
+
+      - name: tofu init 
+        working-directory: td5/scripts/tofu/live/lambda-sample 
+        run: tofu init -no-color -input=false 
+
+      - name: tofu plan 
+        id: plan 
+        working-directory: td5/scripts/tofu/live/lambda-sample 
+        run: tofu plan -no-color -input=false -lock=false
