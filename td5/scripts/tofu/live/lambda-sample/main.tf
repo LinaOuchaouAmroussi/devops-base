@@ -1,10 +1,11 @@
 provider "aws" {
-  region = "eu-north-1" # Vérifie que c'est bien ta région
+  region = "eu-north-1" 
 }
 
 # 1. Création du rôle IAM pour la Lambda
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.name}-role"
+  # MODIFICATION ICI : Ajout de "-v3" pour créer un nouveau rôle unique
+  name = "${var.name}-role-v3" 
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,7 +19,7 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
-# 2. Archive du code source (ton dossier src/index.js)
+# 2. Archive du code source
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/src"
@@ -28,7 +29,8 @@ data "archive_file" "lambda_zip" {
 # 3. La fonction Lambda
 resource "aws_lambda_function" "hello_world" {
   filename      = data.archive_file.lambda_zip.output_path
-  function_name = var.name
+  # MODIFICATION OPTIONNELLE : On change aussi le nom de la fonction par sécurité
+  function_name = "${var.name}-v3" 
   role          = aws_iam_role.lambda_role.arn
   handler       = "index.handler"
   runtime       = "nodejs20.x"
@@ -38,7 +40,7 @@ resource "aws_lambda_function" "hello_world" {
 
 # 4. API Gateway (Simple HTTP API)
 resource "aws_apigatewayv2_api" "lambda_api" {
-  name          = "${var.name}-api"
+  name          = "${var.name}-api-v3"
   protocol_type = "HTTP"
 }
 
