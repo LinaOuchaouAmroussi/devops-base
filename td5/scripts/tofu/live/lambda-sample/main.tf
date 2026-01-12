@@ -1,11 +1,11 @@
 provider "aws" {
-  region = "eu-north-1" 
+  region = "eu-north-1"
 }
 
 # 1. Création du rôle IAM pour la Lambda
-resource "aws_iam_role" "lambda_role" {
-  # MODIFICATION ICI : Ajout de "-v3" pour créer un nouveau rôle unique
-  name = "${var.name}-role-v3" 
+# Note: j'ai utilisé "iam_for_lambda" car c'est ce que ton erreur GitHub recherche
+resource "aws_iam_role" "iam_for_lambda" {
+  name = "iam_for_lambda_lina_v4" # On change le nom ici pour éviter le conflit "AlreadyExists"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -29,18 +29,17 @@ data "archive_file" "lambda_zip" {
 # 3. La fonction Lambda
 resource "aws_lambda_function" "hello_world" {
   filename      = data.archive_file.lambda_zip.output_path
-  # MODIFICATION OPTIONNELLE : On change aussi le nom de la fonction par sécurité
-  function_name = "${var.name}-v3" 
-  role          = aws_iam_role.lambda_role.arn
+  function_name = "lambda-sample-lina-v4" # On change aussi le nom ici
+  role          = aws_iam_role.iam_for_lambda.arn
   handler       = "index.handler"
   runtime       = "nodejs20.x"
 
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 }
 
-# 4. API Gateway (Simple HTTP API)
+# 4. API Gateway
 resource "aws_apigatewayv2_api" "lambda_api" {
-  name          = "${var.name}-api-v3"
+  name          = "lambda-sample-lina-api-v4"
   protocol_type = "HTTP"
 }
 
@@ -62,7 +61,7 @@ resource "aws_apigatewayv2_route" "default_route" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
-# 5. Permission pour que l'API puisse appeler la Lambda
+# 5. Permission
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
@@ -71,7 +70,6 @@ resource "aws_lambda_permission" "api_gw" {
   source_arn    = "${aws_apigatewayv2_api.lambda_api.execution_arn}/*/*"
 }
 
-# 6. Output pour récupérer l'URL de ton site
 output "api_url" {
   value = aws_apigatewayv2_stage.default.invoke_url
 }
