@@ -14,7 +14,7 @@ jobs:
       contents: read 
     steps: 
       - name: Checkout repository 
-        uses: actions/checkout@v3 
+        uses: actions/checkout@v4 # Update à v4
 
       - name: Configure AWS credentials 
         uses: aws-actions/configure-aws-credentials@v3 
@@ -31,4 +31,11 @@ jobs:
         working-directory: td5/scripts/tofu/live/lambda-sample 
         run: | 
           tofu init -no-color -input=false 
-          tofu apply -no-color -input=false -auto-approve
+          tofu apply -no-color -input=false -auto-approve 
+
+      # AJOUT : Pour voir l'URL directement dans le résumé de l'Action
+      - name: Show API URL
+        run: |
+          cd td5/scripts/tofu/live/lambda-sample
+          echo "### URL de l'API :rocket:" >> $GITHUB_STEP_SUMMARY
+          tofu output api_url >> $GITHUB_STEP_SUMMARY
