@@ -14,14 +14,14 @@ jobs:
       contents: read 
     steps: 
       - name: Checkout repository 
-        uses: actions/checkout@v4 # Update à v4
+        uses: actions/checkout@v4 
 
       - name: Configure AWS credentials 
         uses: aws-actions/configure-aws-credentials@v3 
         with:
           role-to-assume: ${{ secrets.APPLY_ROLE_ARN }} 
-          role-session-name: apply-${{ github.run_number }}-${{ github.actor }} 
-          aws-region: eu-north-1 
+          role-session-name: apply-${{ github.run_number }}
+          aws-region: eu-north-1  # Vérifie bien que c'est ta région
 
       - name: Setup OpenTofu 
         uses: opentofu/setup-opentofu@v1 
@@ -33,9 +33,8 @@ jobs:
           tofu init -no-color -input=false 
           tofu apply -no-color -input=false -auto-approve 
 
-      # AJOUT : Pour voir l'URL directement dans le résumé de l'Action
       - name: Show API URL
         run: |
           cd td5/scripts/tofu/live/lambda-sample
           echo "### URL de l'API :rocket:" >> $GITHUB_STEP_SUMMARY
-          tofu output api_url >> $GITHUB_STEP_SUMMARY
+          tofu output -raw api_url >> $GITHUB_STEP_SUMMARY
