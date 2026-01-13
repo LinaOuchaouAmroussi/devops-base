@@ -2,10 +2,9 @@ provider "aws" {
   region = "eu-north-1"
 }
 
-# 1. Création du rôle IAM pour la Lambda
-# Note: j'ai utilisé "iam_for_lambda" car c'est ce que ton erreur GitHub recherche
+# 1. Rôle IAM
 resource "aws_iam_role" "iam_for_lambda" {
-  name = "iam_for_lambda_lina_v4" # On change le nom ici pour éviter le conflit "AlreadyExists"
+  name = "iam_for_lambda_lina_final" # Un nom tout neuf
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -19,27 +18,26 @@ resource "aws_iam_role" "iam_for_lambda" {
   })
 }
 
-# 2. Archive du code source
+# 2. Code source
 data "archive_file" "lambda_zip" {
   type        = "zip"
   source_dir  = "${path.module}/src"
   output_path = "${path.module}/lambda.zip"
 }
 
-# 3. La fonction Lambda
+# 3. Lambda
 resource "aws_lambda_function" "hello_world" {
   filename      = data.archive_file.lambda_zip.output_path
-  function_name = "lambda-sample-lina-v4" # On change aussi le nom ici
+  function_name = "lambda-sample-lina-final"
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = "index.handler"
   runtime       = "nodejs20.x"
-
   source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 }
 
 # 4. API Gateway
 resource "aws_apigatewayv2_api" "lambda_api" {
-  name          = "lambda-sample-lina-api-v4"
+  name          = "lambda-api-lina-final"
   protocol_type = "HTTP"
 }
 
