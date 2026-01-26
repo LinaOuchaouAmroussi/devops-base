@@ -10,3 +10,13 @@
 
 # On ignore les dossiers de logs ou temporaires
 .terraform.lock.hcl
+
+#ignore la machienne virtuelle
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Docker
+.docker_volumes/

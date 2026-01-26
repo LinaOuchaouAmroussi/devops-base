@@ -1,0 +1,34 @@
+services:
+  # La base de données
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb_container
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Ton API Python
+  backend:
+    build: ./backend
+    container_name: backend_container
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mongodb://mongodb:27017
+    depends_on:
+      - mongodb
+
+  # Ton interface Streamlit
+  frontend:
+    build: ./frontend
+    container_name: frontend_container
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
